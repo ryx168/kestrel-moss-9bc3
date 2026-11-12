@@ -36,6 +36,25 @@ Each run uploads `out/` as the artifact `omni-run-<n>` (meta json + mp4 + log) a
 clip was made, publishes Release `run-<n>` with the mp4. The interaction id for the next
 round is `id` in the meta json and in the run log.
 
+## The other eight demos in the thread
+One prompt file each in `prompts/`; run with `-f prompt=prompts/<file> -f execute=true` plus the
+inputs below. "kitten" is the default `refs/kitten.png`; anything else is a still you drop in
+`refs/` and pass with `-f image="refs/a.png refs/b.png"`.
+
+| # | 演示 | prompt file | inputs | duration |
+|---|---|---|---|---|
+| 2 | 多人对话口型同步 | demo2_dialogue_lipsync.txt | kitten | 10 s |
+| 3 | 一张模特照片 + 三套服装 → 虚拟试穿 | demo3_virtual_tryon.txt | model photo + 3 outfit photos (4 images, in that order) | 12 s |
+| 4 | 相同角色、相同表演、不同世界 | demo4_same_performance_new_worlds.txt | kitten | 15 s |
+| 5 | 动态画面中文字保持稳定 | demo5_stable_text.txt | kitten | 10 s |
+| 6 | 一个镜头从拉面店外到店内 | demo6_one_shot_ramen_shop.txt | none (`-f image=""`) | 10 s |
+| 7 | 风格参考图 → 科普动画 | demo7_style_ref_science_explainer.txt | kitten as the style reference | 15 s |
+| 8 | 两张参考照片 → 穿越万神殿 | demo8_two_photos_pantheon_flythrough.txt | exterior photo + interior photo | 10 s |
+| 9 | 海岸线扩展成整座岛屿 | demo9_coastline_to_island.txt | one coastline photo | 10 s |
+
+Demos 4 and 9 are the ones that chain well: run demo 4 once, then `continue` with a new
+world line; run demo 9, then `continue` with "pull back further" and `-f task=extend`.
+
 ## Cost (list price, 2026-11-06)
 | resolution | per second | 10 s | 15 s |
 |---|---|---|---|

@@ -1,0 +1,5 @@
+One continuous shot, outside to inside, no cuts. Night, light rain. The camera starts across a narrow street facing a small ramen shop: red paper lanterns, a glowing noren curtain over the door, steam at the window, neon kanji reflected in the wet pavement. The camera glides forward across the street, ducks under the noren, passes through the doorway and settles at the counter inside: a chef ladling broth behind the bar, bowls of ramen, warm tungsten light, condensation on the glass, two customers eating.
+
+Motion is smooth and steady like a gimbal, roughly nine seconds outside-to-inside, with the exposure adapting naturally from the cool blue street to the warm interior. The scene geometry stays consistent: what is seen through the window from outside is the same counter seen from inside.
+
+Audio: rain and street outside, then the clatter of bowls, broth simmering and quiet chatter inside, no music, no dialogue.

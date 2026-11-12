@@ -1,0 +1,7 @@
+Expand a coastline into a whole island. The reference IMAGE shows one stretch of coast: keep that exact shoreline, its cliffs, beach, vegetation and water colour as the anchor, and extend the world outward from it consistently.
+
+The camera starts low over the water facing the known coastline, then rises steadily into a wide aerial view and pulls back, revealing more and more of the island: the beach continuing into a rocky headland, a forested interior rising to a single green peak, a small fishing village with a jetty in the next bay, and finally the full outline of the island surrounded by open sea with a few white sailboats. Everything newly revealed matches the geology, plant life, weather and time of day of the reference; the original coastline stays recognisable at the bottom of the frame the whole time.
+
+One continuous ascending shot, about ten seconds, soft late-afternoon light, light clouds.
+
+Audio: waves on the shore fading into high wind and distant gulls, no music, no dialogue.

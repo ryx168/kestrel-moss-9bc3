@@ -1,0 +1,7 @@
+Virtual try-on. The first reference IMAGE is the model; the next three reference IMAGES are three outfits. Keep the model's face, hair, body proportions and pose identical throughout. The model stands in a bright, plain studio with a soft grey backdrop and turns slowly in place.
+
+Sequence: the model wears outfit 1 and does a slow half turn; a quick, clean cross-dissolve changes the clothing to outfit 2 mid-turn with no change to the body or background; another half turn; the same dissolve to outfit 3; the model faces the camera and holds. Each garment keeps its exact cut, colour, fabric and print from its reference image and drapes naturally on the body as it moves.
+
+Camera: locked full-body shot, eye level, no zoom.
+
+Audio: quiet studio tone, no music, no dialogue.

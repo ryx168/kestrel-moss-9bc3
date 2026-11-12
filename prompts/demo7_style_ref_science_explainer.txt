@@ -1,0 +1,7 @@
+A short science explainer animation in the exact visual style of the reference IMAGE: its soft 3D-rendered look, warm palette, rounded shapes, gentle lighting and clean edges. Do not copy the subject of the image, only its style.
+
+Topic: how a rainbow forms. A single raindrop floats in the centre; a beam of white sunlight enters from the upper left, bends as it enters the drop, reflects once off the back wall, and leaves as a fan of colours (red on the outside, violet on the inside). Simple labelled arrows appear in turn: "折射", "反射", "折射". The drop then shrinks and multiplies into a curtain of rain, and a full rainbow arcs across the sky above a small hill.
+
+Pacing: calm, one idea at a time, labels fading in and out cleanly and staying legible. Camera: slow, steady push-in, then a pull-back for the final rainbow.
+
+Audio: a soft Mandarin narration, one sentence per step: "阳光进入雨滴时发生折射。" "在雨滴后壁反射一次。" "离开时再次折射，分成七色。" "无数雨滴一起，就成了彩虹。" No music.

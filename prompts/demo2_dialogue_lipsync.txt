@@ -1,0 +1,11 @@
+Two characters talk to each other with accurate lip sync. Character A is the kitten in the reference IMAGE (cream-and-ginger kitten, large round black eyes, pink dress, pale pink scarf). Character B is a slightly taller grey tabby kitten in a blue cardigan and round glasses, drawn in the same soft 3D-animation style. Both stand upright like people, facing each other in three-quarter view, in a sunlit wooden home library.
+
+Dialogue, in Mandarin, natural pacing, each line lip-synced to the speaker and the other listening with small reactions:
+A: "你看，这本书讲的是怎么做视频。"
+B: "现在不用学了，跟它说一句话就行。"
+A: "那我们来试试？"
+B: "好，开拍。"
+
+Camera: locked medium two-shot, then a gentle push-in on the last line. Keep both faces, outfits and proportions identical in every frame.
+
+Audio: the four spoken lines in two distinct voices, soft room tone, no music.
