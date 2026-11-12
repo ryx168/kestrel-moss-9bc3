@@ -1,0 +1,112 @@
+name: omni
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: generate (round 1) | continue (round 2+) | resume (re-download)
+        type: choice
+        options: [generate, continue, resume]
+        default: generate
+      prompt:
+        description: prompt file (prompts/...)
+        default: prompts/round1_text_only.txt
+      image:
+        description: character / frame still(s), space separated; empty for none
+        default: refs/kitten.png
+      video:
+        description: motion / edit reference clip(s) in refs/, space separated; empty for none
+        default: ""
+      duration:
+        description: seconds, 3..15 (continue+extend is the added length)
+        default: "10"
+      resolution:
+        type: choice
+        options: [360p, 720p, 1080p, 4k]
+        default: 720p
+      task:
+        description: "optional: text_to_video image_to_video reference_to_video edit extend"
+        default: ""
+      previous:
+        description: continue / resume - previous interaction id (id in the earlier run's meta json)
+        default: ""
+      execute:
+        description: send the PAID request (false = plan + price only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  omni:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      PYTHONUTF8: "1"
+      IN_MODE: ${{ inputs.mode }}
+      IN_PROMPT: ${{ inputs.prompt }}
+      IN_IMAGE: ${{ inputs.image }}
+      IN_VIDEO: ${{ inputs.video }}
+      IN_DURATION: ${{ inputs.duration }}
+      IN_RESOLUTION: ${{ inputs.resolution }}
+      IN_TASK: ${{ inputs.task }}
+      IN_PREVIOUS: ${{ inputs.previous }}
+      IN_EXECUTE: ${{ inputs.execute }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run
+        shell: bash
+        run: |
+          set -o pipefail
+          args=()
+          for f in $IN_IMAGE; do args+=(--image "$f"); done
+          for f in $IN_VIDEO; do args+=(--video "$f"); done
+          if [ -n "$IN_TASK" ]; then args+=(--task "$IN_TASK"); fi
+          if [ "$IN_EXECUTE" = "true" ]; then args+=(--execute); fi
+          mkdir -p out
+          case "$IN_MODE" in
+            generate)
+              python run_omni.py generate --prompt-file "$IN_PROMPT" --duration "$IN_DURATION" \
+                --resolution "$IN_RESOLUTION" --out-dir out "${args[@]}" | tee out/run.log
+              ;;
+            continue)
+              if [ -z "$IN_PREVIOUS" ]; then echo "previous interaction id is required"; exit 1; fi
+              python run_omni.py continue --previous "$IN_PREVIOUS" --prompt-file "$IN_PROMPT" \
+                --duration "$IN_DURATION" --resolution "$IN_RESOLUTION" --out-dir out "${args[@]}" | tee out/run.log
+              ;;
+            resume)
+              if [ -z "$IN_PREVIOUS" ]; then echo "previous interaction id is required"; exit 1; fi
+              printf '{"id": "%s"}\n' "$IN_PREVIOUS" > out/resume.json
+              python run_omni.py resume out/resume.json | tee out/run.log
+              ;;
+          esac
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          { echo "## omni $IN_MODE"; echo '```'; cat out/run.log 2>/dev/null || true; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          ls -la out || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: omni-run-${{ github.run_number }}
+          path: out
+          if-no-files-found: ignore
+
+      - name: Release the clip
+        if: inputs.execute && hashFiles('out/*.mp4') != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "run-${{ github.run_number }}" out/*.mp4 out/*.json \
+            --title "omni $IN_MODE run ${{ github.run_number }}" \
+            --notes-file out/run.log
