@@ -1,0 +1,7 @@
+Motion transfer. The reference VIDEO is the motion source only: reproduce the performer's exact movement, timing, pauses and the camera framing, beat for beat. Do not keep the performer's identity, clothes or location.
+
+The performer is replaced by the character in the reference IMAGE: a small cream-and-ginger kitten with large round black eyes, pink inner ears, wearing a pink dress with a pale pink neck scarf. Keep its face, fur colouring, proportions and outfit exactly as in the image in every frame. It stands upright on two legs like a person and performs the whole motion with its own body: paws for hands, tail following the movement naturally.
+
+Setting: a sunlit wooden home library, tall bookshelves, a window on the left with soft morning light, a potted plant on the right, books stacked on the floor. Warm, soft, clean 3D-animation look matching the reference image.
+
+Audio: quiet room tone, soft paw steps on the wooden floor, no music, no dialogue.
