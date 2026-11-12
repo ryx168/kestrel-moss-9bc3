@@ -15,7 +15,7 @@ through `previous_interaction_id`, round N extends it.
 
 Without --execute every command prints the plan and the price and sends nothing.
 The key is read from GOOGLE_API_KEY / GEMINI_API_KEY, then
-%APPDATA%\agent-sprite-forge\config.json.
+%APPDATA%\\agent-sprite-forge\\config.json.
 It is never printed.
 """
 import argparse, base64, json, mimetypes, os, re, sys, time, urllib.error, urllib.request
