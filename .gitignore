@@ -1,4 +1,5 @@
 out/
 __pycache__/
+forge/
 *.mp4
 !refs/*.mp4

@@ -1,0 +1,132 @@
+name: motion
+
+on:
+  workflow_dispatch:
+    inputs:
+      video:
+        description: motion reference clip in refs/ (empty = built-in wave/step/bow motion)
+        default: ""
+      duration:
+        description: seconds of built-in motion for round 1 (ignored with a clip)
+        default: "10"
+      ai:
+        description: also run the AI path (needs one of XAI_API_KEY / ARK_API_KEY / FAL_KEY as a repo secret)
+        type: boolean
+        default: false
+      ai_prompt:
+        description: prompt file for the AI path
+        default: prompts/round1_text_only.txt
+      ai_resolution:
+        type: choice
+        options: [480p, 720p, 1080p]
+        default: 720p
+  push:
+    branches: [master]
+    paths: [puppet.py, refs/**, .github/workflows/motion.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  puppet:
+    name: zero-key puppet (MediaPipe pose -> Pillow cut-out)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      IN_VIDEO: ${{ inputs.video }}
+      IN_DURATION: ${{ inputs.duration || '10' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Deps
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu-core >/dev/null
+          python -m pip install -q pillow
+          if [ -n "$IN_VIDEO" ]; then python -m pip install -q "mediapipe==0.10.21"; fi
+      - name: Three rounds
+        run: |
+          set -o pipefail
+          if [ -n "$IN_VIDEO" ]; then
+            python puppet.py demo --video "$IN_VIDEO" --out-dir out | tee out.log
+          else
+            python puppet.py demo --duration "$IN_DURATION" --out-dir out | tee out.log
+          fi
+          ffmpeg -loglevel error -i out/all_rounds.mp4 -vf "select='not(mod(n\,60))',scale=320:180,tile=6x3" -frames:v 1 out/review.jpg
+          mv out.log out/run.log
+      - name: Summary
+        if: always()
+        run: |
+          { echo "## puppet"; echo '```'; cat out/run.log 2>/dev/null || true; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: puppet-run-${{ github.run_number }}
+          path: out
+          if-no-files-found: ignore
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "puppet-${{ github.run_number }}" out/all_rounds.mp4 out/round1.mp4 out/round2.mp4 out/round3.mp4 out/review.jpg out/pose.json \
+            --title "puppet run ${{ github.run_number }}" --notes-file out/run.log
+
+  ai:
+    name: AI path (Forge route ladder - xAI / BytePlus / fal.ai)
+    if: github.event_name == 'workflow_dispatch' && inputs.ai
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+      ARK_API_KEY: ${{ secrets.ARK_API_KEY }}
+      FAL_KEY: ${{ secrets.FAL_KEY }}
+      PYTHONUTF8: "1"
+      IN_PROMPT: ${{ inputs.ai_prompt }}
+      IN_RES: ${{ inputs.ai_resolution }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Forge route layer (MIT, cloned at run time)
+        run: |
+          git clone -q --depth 1 https://github.com/0x0funky/agent-sprite-forge forge
+          python -m pip install -q -r forge/requirements.txt
+      - name: Which route
+        run: python forge/skills/generate2dmedia/scripts/route_media.py resolve --kind video | tee out_route.json
+      - name: Round 1 clip (first frame = kitten still)
+        run: |
+          set -o pipefail
+          mkdir -p out
+          python forge/skills/generate2dmedia/scripts/route_media.py video \
+            --prompt-file "$IN_PROMPT" --reference refs/kitten.png \
+            --duration 10 --resolution "$IN_RES" --out-dir out/round1 --project-dir . | tee out/run.log
+      - name: Round 2 clip (continues from round 1's last frame)
+        if: hashFiles('out/round1/generated.mp4') != ''
+        run: |
+          set -o pipefail
+          ffmpeg -loglevel error -sseof -0.1 -i out/round1/generated.mp4 -frames:v 1 -update 1 out/last.png
+          python forge/skills/generate2dmedia/scripts/route_media.py video \
+            --prompt-file prompts/round2_new_performer.txt --reference out/last.png \
+            --duration 10 --resolution "$IN_RES" --out-dir out/round2 --project-dir . | tee -a out/run.log
+      - name: Spend
+        if: always()
+        run: python forge/skills/generate2dmedia/scripts/media_ledger.py summary --project-dir . 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-run-${{ github.run_number }}
+          path: |
+            out
+            out_route.json
+          if-no-files-found: ignore
+      - name: Release
+        if: hashFiles('out/round1/generated.mp4') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "ai-${{ github.run_number }}" out/round1/generated.mp4 out/round2/generated.mp4 \
+            --title "AI run ${{ github.run_number }}" --notes-file out/run.log || \
+          gh release create "ai-${{ github.run_number }}" out/round1/generated.mp4 \
+            --title "AI run ${{ github.run_number }}" --notes-file out/run.log

@@ -1,68 +1,53 @@
-# Gemini Omni 1.2 Flash on GitHub Actions
+# Multi-round motion transfer on GitHub Actions
 
-Multi-round motion transfer, the first of the nine demos in
-x.com/FinanceYF5/status/2118537565884252564, rebuilt as a workflow: round 1 moves the
-motion of a reference clip (or a written motion) onto a character still, round 2 swaps
-the performer and the place in the same clip, round 3 extends it with a spoken line.
-No video is rendered on a PC; every call runs in the `omni` workflow.
+Rebuilds demo 1 of the Gemini Omni 1.2 Flash thread (x.com/FinanceYF5/status/2118537565884252564,
+多轮动作迁移): a motion is moved onto a character, the result is re-rendered with a new
+performer and place, then extended. Nothing renders on a PC; everything runs in Actions.
 
-## Setup (owner, once)
-1. Prepaid credit on the AI Studio project of the key: https://ai.studio/projects
-   (video has no free tier; the estate key answered 402 "credits depleted" on 2026-11-06).
-2. Repo secret `GEMINI_API_KEY` (PowerShell):
-   ```
-   gh secret set GEMINI_API_KEY -R ryx168/kestrel-moss-9bc3
-   ```
-   (paste the key at the prompt; it is never echoed).
-3. Optional: `refs/motion.mp4`, a short phone clip of a person doing one clear movement
-   (<= 15 s for a 10 s output, <= 3 s for an 11-15 s output), and `refs/character2.png`.
+Two paths, both in `.github/workflows/motion.yml`:
+
+| path | needs | what it does |
+|---|---|---|
+| **puppet** (default, zero-key) | nothing | MediaPipe Pose reads the motion from a clip (or a built-in wave / step / bow script), Pillow draws a 2D cut-out puppet from the kitten still, ffmpeg packs it. Round 1 kitten in a library, round 2 the same pose track on a grey tabby on a rooftop, round 3 a 5 s nod blended from the last frame. ~1 min. |
+| **ai** (opt-in) | one repo secret: `XAI_API_KEY` (Grok Imagine), `ARK_API_KEY` (BytePlus Seedance) or `FAL_KEY` (Kling / Veo / Luma ...) | clones the MIT Agent Sprite Forge route layer and animates the kitten still with the first provider whose key exists; round 2 starts from round 1's last frame. |
+
+Gemini is not used. The Gemini-only runner (`run_omni.py`, `omni.yml`) is kept for reference
+and needs prepaid credit that this estate does not have.
 
 ## Run
-Every run is a plan + price only unless `execute=true`.
 ```
-# round 1b, written motion, kitten still (default inputs), paid
-gh workflow run omni.yml -R ryx168/kestrel-moss-9bc3 -f execute=true
+# zero-key, built-in motion (also runs on every push that touches puppet.py or refs/)
+gh workflow run motion.yml -R ryx168/kestrel-moss-9bc3
 
-# round 1a, motion transfer from refs/motion.mp4
-gh workflow run omni.yml -R ryx168/kestrel-moss-9bc3 -f prompt=prompts/round1_motion_transfer.txt -f video=refs/motion.mp4 -f task=reference_to_video -f execute=true
+# zero-key, motion from a real clip you committed to refs/
+gh workflow run motion.yml -R ryx168/kestrel-moss-9bc3 -f video=refs/motion.mp4
 
-# round 2: same motion, new performer and place (id from the round 1 meta json)
-gh workflow run omni.yml -R ryx168/kestrel-moss-9bc3 -f mode=continue -f previous=<id> -f prompt=prompts/round2_new_performer.txt -f image=refs/character2.png -f task=edit -f execute=true
-
-# round 3: extend 5 s with a Mandarin line
-gh workflow run omni.yml -R ryx168/kestrel-moss-9bc3 -f mode=continue -f previous=<id> -f prompt=prompts/round3_extend_dialogue.txt -f duration=5 -f task=extend -f execute=true
+# add the AI path (after setting one of the three secrets)
+gh workflow run motion.yml -R ryx168/kestrel-moss-9bc3 -f ai=true -f ai_resolution=720p
 ```
-Each run uploads `out/` as the artifact `omni-run-<n>` (meta json + mp4 + log) and, when a
-clip was made, publishes Release `run-<n>` with the mp4. The interaction id for the next
-round is `id` in the meta json and in the run log.
+Outputs: artifact `puppet-run-<n>` and Release `puppet-<n>` with `all_rounds.mp4`, the three
+round clips, `review.jpg` (18 sampled frames) and `pose.json` (the motion track, reusable).
+The AI path publishes `ai-<n>` with its clips and prints the Forge spend ledger.
 
-## The other eight demos in the thread
-One prompt file each in `prompts/`; run with `-f prompt=prompts/<file> -f execute=true` plus the
-inputs below. "kitten" is the default `refs/kitten.png`; anything else is a still you drop in
-`refs/` and pass with `-f image="refs/a.png refs/b.png"`.
+## Setting a secret (owner, PowerShell)
+```
+gh secret set XAI_API_KEY -R ryx168/kestrel-moss-9bc3
+```
+Prices per 10 s clip at 720p (Forge price table, 2026-10-06): Grok Imagine about $0.50-1.00,
+Seedance mini $0.80, Kling via fal.ai about $1-3. BytePlus needs a $30 minimum balance.
 
-| # | 演示 | prompt file | inputs | duration |
-|---|---|---|---|---|
-| 2 | 多人对话口型同步 | demo2_dialogue_lipsync.txt | kitten | 10 s |
-| 3 | 一张模特照片 + 三套服装 → 虚拟试穿 | demo3_virtual_tryon.txt | model photo + 3 outfit photos (4 images, in that order) | 12 s |
-| 4 | 相同角色、相同表演、不同世界 | demo4_same_performance_new_worlds.txt | kitten | 15 s |
-| 5 | 动态画面中文字保持稳定 | demo5_stable_text.txt | kitten | 10 s |
-| 6 | 一个镜头从拉面店外到店内 | demo6_one_shot_ramen_shop.txt | none (`-f image=""`) | 10 s |
-| 7 | 风格参考图 → 科普动画 | demo7_style_ref_science_explainer.txt | kitten as the style reference | 15 s |
-| 8 | 两张参考照片 → 穿越万神殿 | demo8_two_photos_pantheon_flythrough.txt | exterior photo + interior photo | 10 s |
-| 9 | 海岸线扩展成整座岛屿 | demo9_coastline_to_island.txt | one coastline photo | 10 s |
+## Local
+```
+pip install pillow mediapipe==0.10.21     # mediapipe only for --video
+python puppet.py demo --out-dir out        # three rounds + all_rounds.mp4 (needs ffmpeg)
+python puppet.py extract --video refs/motion.mp4 --out out/pose.json
+python puppet.py render --pose out/pose.json --skin tabby --scene rooftop --out out/x.mp4
+```
+Skins: `kitten`, `tabby`. Scenes: `library`, `rooftop`. Motions: `wave_step_bow`, `nod`.
+Add a skin or scene by extending the `SKINS` / `SCENES` tables in `puppet.py`.
 
-Demos 4 and 9 are the ones that chain well: run demo 4 once, then `continue` with a new
-world line; run demo 9, then `continue` with "pull back further" and `-f task=extend`.
-
-## Cost (list price, 2026-11-06)
-| resolution | per second | 10 s | 15 s |
-|---|---|---|---|
-| 360p | $0.023 | $0.23 | $0.35 |
-| 720p | $0.07 | $0.70 | $1.04 |
-| 1080p | $0.104 | $1.04 | $1.56 |
-| 4k | $0.209 | $2.09 | $3.14 |
-
-## Local use
-`python run_omni.py generate|continue|resume ...` with `GEMINI_API_KEY` in the environment;
-`--help` lists the flags. Endpoint: `POST /v1beta/interactions` (aistudio.google.com/docs/omni).
+## The other eight demos (prompts for the AI path)
+`prompts/demo2..demo9` cover the rest of the thread: dialogue lip-sync, virtual try-on,
+one performance in five worlds, stable on-screen text, an outside-to-inside one-shot, a
+style-reference explainer, a two-photo Pantheon flythrough, a coastline grown into an island.
+They are written for a reference-driven video model; pass one as `ai_prompt` once a key is set.
