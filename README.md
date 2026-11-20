@@ -29,6 +29,34 @@ Outputs: artifact `puppet-run-<n>` and Release `puppet-<n>` with `all_rounds.mp4
 round clips, `review.jpg` (18 sampled frames) and `pose.json` (the motion track, reusable).
 The AI path publishes `ai-<n>` with its clips and prints the Forge spend ledger.
 
+## Sample gallery (zero-key)
+Every push and every dispatch (unless `-f samples=false`) also renders 12 clips into the
+same Release:
+
+| clip | motion | performer | place |
+|---|---|---|---|
+| 01 | jumping jacks | ginger, cap | park |
+| 02 | dance | rose, bow | stage with sweeping spotlights |
+| 03 | march across and back | tabby, glasses | forest, falling leaves |
+| 04 | jump | snow, crown | snowfall at night |
+| 05 | clap | midnight, headphones | moon surface, shooting star |
+| 06 | side kicks | ginger | beach, moving surf |
+| 07 | stretch | kitten | library |
+| 08 | cheer | gala, crown | rooftop at dusk |
+| 09 | wave, step, bow | denim | park |
+| 10 | dance, **five worlds** (thread demo 4) | kitten | library, forest, beach, snow, stage, a cut every 2 s |
+| 11 | **virtual try-on** (thread demo 3) | same kitten, four outfits | studio, a swap every 2.5 s |
+| 12 | jumping jacks, **six performers** (round 2 idea) | kitten, tabby, ginger, snow, midnight, gala | park |
+
+Plus `samples_grid.mp4` (clips 1-9 as a 3x3 wall), `samples_reel.mp4` (all 12 back to back)
+and `samples_sheet.jpg` (one frame from each).
+
+```
+python puppet.py list                               # motions, skins, scenes
+python puppet.py preview --out out/preview.jpg      # one still per sample in about a second
+python puppet.py samples --only 02_dance 10_five_worlds
+```
+
 ## Setting a secret (owner, PowerShell)
 ```
 gh secret set XAI_API_KEY -R ryx168/kestrel-moss-9bc3
@@ -43,7 +71,7 @@ python puppet.py demo --out-dir out        # three rounds + all_rounds.mp4 (need
 python puppet.py extract --video refs/motion.mp4 --out out/pose.json
 python puppet.py render --pose out/pose.json --skin tabby --scene rooftop --out out/x.mp4
 ```
-Skins: `kitten`, `tabby`. Scenes: `library`, `rooftop`. Motions: `wave_step_bow`, `nod`.
+Run `python puppet.py list` for every motion, skin and scene.
 Add a skin or scene by extending the `SKINS` / `SCENES` tables in `puppet.py`.
 
 ## The other eight demos (prompts for the AI path)

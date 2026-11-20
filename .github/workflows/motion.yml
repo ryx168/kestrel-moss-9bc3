@@ -9,6 +9,10 @@ on:
       duration:
         description: seconds of built-in motion for round 1 (ignored with a clip)
         default: "10"
+      samples:
+        description: also render the 12-clip sample gallery
+        type: boolean
+        default: true
       ai:
         description: also run the AI path (needs one of XAI_API_KEY / ARK_API_KEY / FAL_KEY as a repo secret)
         type: boolean
@@ -55,6 +59,11 @@ jobs:
           fi
           ffmpeg -loglevel error -i out/all_rounds.mp4 -vf "select='not(mod(n\,60))',scale=320:180,tile=6x3" -frames:v 1 out/review.jpg
           mv out.log out/run.log
+      - name: Sample gallery
+        if: github.event_name == 'push' || inputs.samples
+        run: |
+          set -o pipefail
+          python puppet.py samples --out-dir out/samples | tee -a out/run.log
       - name: Summary
         if: always()
         run: |
@@ -69,7 +78,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          shopt -s nullglob
           gh release create "puppet-${{ github.run_number }}" out/all_rounds.mp4 out/round1.mp4 out/round2.mp4 out/round3.mp4 out/review.jpg out/pose.json \
+            out/samples/*.mp4 out/samples/samples_sheet.jpg \
             --title "puppet run ${{ github.run_number }}" --notes-file out/run.log
 
   ai:
