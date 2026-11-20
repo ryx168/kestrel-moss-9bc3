@@ -157,7 +157,7 @@ def pose_jump(t, dur):
     p["r_kne"] = (p["r_kne"][0] - 0.03 * crouch, p["r_kne"][1] + down * 0.5 - 0.02 * air)
     p = arms(p, (0.64, 0.58), (0.66, 0.64), crouch * 0.7)
     p = arms(p, (0.64, 0.33), (0.66, 0.21), up)
-    return shift(p, dy=-0.16 * air)
+    return shift(p, dy=-0.11 * air)
 
 
 def pose_clap(t, dur):
@@ -704,6 +704,7 @@ def render(pose, skin_name, scene_name, out, label=None, scale=1.0, schedule=Non
     tmp = tempfile.mkdtemp(prefix="puppet_")
     fps = pose["fps"]
     n = len(pose["frames"])
+    thumb_done = False
     for i, fr in enumerate(pose["frames"]):
         t = i / fps
         sk, sc, lb, fl = skin_name, scene_name, label, 0.0
@@ -714,8 +715,9 @@ def render(pose, skin_name, scene_name, out, label=None, scale=1.0, schedule=Non
                     fl = (1 - (t - t0) / 0.18) if (t0 > 0 and t - t0 < 0.18) else 0.0
         im = frame_at(fr, t, sk, sc, lb, scale, fl)
         im.save(os.path.join(tmp, "%05d.png" % i))
-        if thumb and i == n // 2:
+        if thumb and not thumb_done and i >= int(n * 0.45) and fl <= 0:
             im.resize((W // 4, H // 4), Image.LANCZOS).save(thumb)
+            thumb_done = True
     os.makedirs(os.path.dirname(os.path.abspath(out)) or ".", exist_ok=True)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(fps), "-i", os.path.join(tmp, "%05d.png"),
                     "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out], check=True)
